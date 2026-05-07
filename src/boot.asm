@@ -13,6 +13,8 @@ header_start:
     dd MB2_ARCH
     dd MB2_LENGTH
     dd MB2_CHECKSUM
+
+    ; end tag
     dw 0
     dw 0
     dd 8
@@ -20,12 +22,16 @@ header_end:
 
 section .bss
 align 4096
+
 pml4:
     resb 4096
+
 pdpt:
     resb 4096
+
 pdt:
     resb 4096
+
 align 16
 stack_bottom:
     resb 16384
@@ -34,6 +40,7 @@ stack_top:
 section .rodata
 gdt64:
     dq 0
+
 .code equ $ - gdt64
     dw 0xFFFF
     dw 0
@@ -41,6 +48,7 @@ gdt64:
     db 10011010b
     db 10101111b
     db 0
+
 .data equ $ - gdt64
     dw 0xFFFF
     dw 0
@@ -48,76 +56,131 @@ gdt64:
     db 10010010b
     db 00001111b
     db 0
+
 .pointer:
     dw $ - gdt64 - 1
     dq gdt64
 
 section .text
 [BITS 32]
+
 _start:
     cli
-    mov edi, ebx
+
+    ; multiboot magic check
     cmp eax, 0x36d76289
     jne .no_multiboot
-    mov esp, 0x10a000
 
-    db 0x0F, 0x01, 0x15
-    dd 0x102018
+    ; usar stack real
+    mov esp, stack_top
 
-    ; pml4[0] = pdpt | 3
-    mov eax, 0x104003
-    mov ebx, 0x103000
-    mov dword [ebx], eax
+    ; cargar GDT
+    lgdt [gdt64.pointer]
 
-    ; pdpt[0] = pdt | 3
-    mov eax, 0x105003
-    mov ebx, 0x104000
-    mov dword [ebx], eax
+    ; --------------------------
+    ; limpiar page tables
+    ; --------------------------
 
-    ; pdt[0] = first 2MB
+    mov edi, pml4
+    mov ecx, 4096 / 4
+    xor eax, eax
+    rep stosd
+
+    mov edi, pdpt
+    mov ecx, 4096 / 4
+    xor eax, eax
+    rep stosd
+
+    mov edi, pdt
+    mov ecx, 4096 / 4
+    xor eax, eax
+    rep stosd
+
+    ; --------------------------
+    ; pml4[0] -> pdpt
+    ; --------------------------
+
+    mov eax, pdpt
+    or eax, 0x3
+    mov [pml4], eax
+
+    ; --------------------------
+    ; pdpt[0] -> pdt
+    ; --------------------------
+
+    mov eax, pdt
+    or eax, 0x3
+    mov [pdpt], eax
+
+    ; --------------------------
+    ; map first 2 MiB
+    ; --------------------------
+
     mov eax, 0x000083
-    mov ebx, 0x105000
-    mov dword [ebx], eax
+    mov [pdt], eax
 
-    ; pdt[1] = second 2MB
+    ; --------------------------
+    ; map second 2 MiB
+    ; --------------------------
+
     mov eax, 0x200083
-    mov ebx, 0x105008
-    mov dword [ebx], eax
+    mov [pdt + 8], eax
 
+    ; --------------------------
     ; enable PAE
+    ; --------------------------
+
     mov eax, cr4
     or eax, 1 << 5
     mov cr4, eax
 
-    ; load pml4 into cr3
-    mov eax, 0x103000
+    ; --------------------------
+    ; load PML4 into CR3
+    ; --------------------------
+
+    mov eax, pml4
     mov cr3, eax
 
-    ; enable long mode in EFER
+    ; --------------------------
+    ; enable long mode
+    ; --------------------------
+
     mov ecx, 0xC0000080
     rdmsr
     or eax, 1 << 8
     wrmsr
 
-    ; enable paging and protected mode
+    ; --------------------------
+    ; enable paging + protected mode
+    ; --------------------------
+
     mov eax, cr0
     or eax, 1 << 31
     or eax, 1 << 0
     mov cr0, eax
 
-    ; far jump to long mode - address filled after first build
-    db 0xEA
-    dd 0x0010107b      ; placeholder - we fill this after objdump
-    dw 0x08
+    ; --------------------------
+    ; jump to 64-bit mode
+    ; --------------------------
+
+    jmp 0x08:long_mode_entry
 
 .no_multiboot:
     hlt
 
 [BITS 64]
+
 long_mode_entry:
     mov ax, 0x10
-    mov ss, ax
+
     mov ds, ax
     mov es, ax
+    mov ss, ax
+
+    mov rsp, stack_top
+
     call kernel_main
+
+.hang:
     hlt
+    jmp .hang
