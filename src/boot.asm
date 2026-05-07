@@ -178,6 +178,7 @@ long_mode_entry:
     mov ss, ax
 
     mov rsp, stack_top
+    mov rdi, rbx
 
     call kernel_main
 

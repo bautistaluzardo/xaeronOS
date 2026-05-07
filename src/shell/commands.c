@@ -3,7 +3,21 @@
 #include "../drivers/vga.h"
 #include "../drivers/timer.h"
 #include "../lib/string.h"
- 
+#include "../mm/pmm.h"
+
+void cmd_meminfo() {
+    print("\nMemoria fisica:\n");
+    print("  Total : ");
+    print_number(pmm_total_frames() * 4);
+    print(" KB\n");
+    print("  Libre : ");
+    print_number(pmm_free_frames() * 4);
+    print(" KB\n");
+    print("  Usada : ");
+    print_number((pmm_total_frames() - pmm_free_frames()) * 4);
+    print(" KB\n");
+}
+
 void cmd_help() {
     print("\nComandos disponibles:\n");
     print("help   - muestra esta ayuda\n");
@@ -12,6 +26,7 @@ void cmd_help() {
     print("uptime - tiempo desde el boot\n");
     print("sleep - manda al sistema a dormir 3 segundos\n");
     print("panic  - debug\n");
+    print("meminfo - muestra la memoria fisica\n");
 }
  
 void cmd_clear() {

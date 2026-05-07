@@ -2,23 +2,21 @@
 #include "../drivers/vga.h"
 #include "../drivers/timer.h"
 #include "../shell/shell.h"
- 
-void kernel_main() {
- 
+#include "../mm/pmm.h"
+
+void kernel_main(uint64_t mb2_info) {
     clear_screen();
- 
     idt_init();
     timer_init();
+    pmm_init(mb2_info);
     __asm__ volatile ("sti");
- 
+
     print("booteaste el kernel.\n");
     print("bienvenido al os papa.\n");
     print("habemus shell.\n");
- 
     prompt();
- 
+
     for (;;) {
         __asm__ volatile ("hlt");
     }
 }
- 

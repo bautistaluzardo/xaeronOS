@@ -19,6 +19,7 @@ OBJ = \
 	obj/lib/string.o \
 	obj/shell/commands.o \
 	obj/shell/shell.o \
+	obj/mm/pmm.o \
 	obj/kernel/kernel.o
 
 # ========================= #
@@ -38,6 +39,14 @@ obj/boot.o: src/boot.asm
 obj/cpu/idt_asm.o: src/cpu/idt.asm
 	mkdir -p obj/cpu
 	$(AS) -f elf64 src/cpu/idt.asm -o obj/cpu/idt_asm.o
+
+# ========================= #
+# pmm                       #
+# ========================= #
+
+obj/mm/pmm.o: src/mm/pmm.c src/mm/pmm.h
+	mkdir -p obj/mm
+	$(CC) $(CFLAGS) -c src/mm/pmm.c -o obj/mm/pmm.o
 
 # ========================= #
 # cpu                       #

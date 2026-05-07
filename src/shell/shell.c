@@ -19,10 +19,16 @@ void execute_command() {
         cmd_help();
  
     } else if (strcmp(command_buffer, "clear")) {
+    
  
         cmd_clear();
- 
-    } else if (strcmp(command_buffer, "uptime")) {
+    
+    } else if (strcmp(command_buffer, "meminfo")) {
+    
+        cmd_meminfo();
+    }
+
+     else if (strcmp(command_buffer, "uptime")) {
  
         cmd_uptime();
  
