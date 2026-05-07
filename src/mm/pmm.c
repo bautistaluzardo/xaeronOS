@@ -123,6 +123,7 @@ void pmm_init(uint64_t mb2_addr) {
             free_frames--;
         }
     }
+    bitmap_set(0);  // reservar frame 0, nunca devolver NULL
 }
 
 // ---- alloc / free ----

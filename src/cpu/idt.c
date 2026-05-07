@@ -1,10 +1,13 @@
 #include "idt.h"
+#include "../drivers/vga.h"
 
 extern void print(const char* str);
 extern void isr0();
 extern void idt_load(struct idtr*);
 extern void irq1();
 extern void irq0();
+extern void isr14();
+
 static inline void outb(uint16_t port, uint8_t value) {
     __asm__ volatile ("outb %0, %1"
                       :
@@ -32,6 +35,7 @@ void idt_init() {
     idt_set_gate(0, isr0);
     idt_set_gate(32, irq0);
     idt_set_gate(33, irq1);
+    idt_set_gate(14, isr14);
 
     idtr_desc.limit = sizeof(idt) - 1;
     idtr_desc.base  = (uint64_t)&idt;
@@ -77,4 +81,23 @@ void pic_remap() {
 
     outb(0x21, 0xFC);
     outb(0xA1, 0xFF);
+}
+
+void page_fault_handler(uint64_t error_code) {
+    uint64_t fault_addr;
+    __asm__ volatile ("mov %%cr2, %0" : "=r"(fault_addr));
+
+    print("\n=== PAGE FAULT ===\n");
+    print("Direccion: ");
+    print_hex(fault_addr);
+    print("\nError: ");
+    if (error_code & 1)  print("proteccion de pagina | ");
+    else                 print("no esta la pagina | ");
+    if (error_code & 2)  print("lectura | ");
+    else                 print("escritura | ");
+    if (error_code & 4)  print("modo usuario");
+    else                 print("modo kernel");
+    print("\n==================\n");
+
+    for(;;) __asm__ volatile ("hlt");
 }

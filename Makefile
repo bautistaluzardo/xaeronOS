@@ -20,6 +20,7 @@ OBJ = \
 	obj/shell/commands.o \
 	obj/shell/shell.o \
 	obj/mm/pmm.o \
+	obj/mm/vmm.o \
 	obj/kernel/kernel.o
 
 # ========================= #
@@ -39,6 +40,14 @@ obj/boot.o: src/boot.asm
 obj/cpu/idt_asm.o: src/cpu/idt.asm
 	mkdir -p obj/cpu
 	$(AS) -f elf64 src/cpu/idt.asm -o obj/cpu/idt_asm.o
+
+# ========================= #
+# vmm                       #
+# ========================= #
+
+obj/mm/vmm.o: src/mm/vmm.c src/mm/vmm.h
+	mkdir -p obj/mm
+	$(CC) $(CFLAGS) -c src/mm/vmm.c -o obj/mm/vmm.o
 
 # ========================= #
 # pmm                       #

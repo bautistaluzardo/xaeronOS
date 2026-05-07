@@ -8,5 +8,6 @@ void cmd_about();
 void cmd_sleep();
 void cmd_panic();
 void cmd_meminfo();
+void cmd_vmtest();
 
 #endif

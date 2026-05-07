@@ -2,6 +2,7 @@ global idt_load
 global isr0
 global irq1
 global irq0
+global isr14
 extern timer_handler
 extern keyboard_handler
 extern exception_handler
@@ -118,3 +119,9 @@ irq0:
     pop rax
 
     iretq
+
+isr14:
+    cli
+    push 14
+    call exception_handler
+    hlt

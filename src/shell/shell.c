@@ -29,8 +29,13 @@ void execute_command() {
     }
 
      else if (strcmp(command_buffer, "uptime")) {
- 
+    
         cmd_uptime();
+    }
+
+     else if (strcmp(command_buffer, "vmtest")) {
+    
+        cmd_vmtest();
  
     } else if (strcmp(command_buffer, "about")) {
  

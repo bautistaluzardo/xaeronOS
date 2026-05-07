@@ -116,3 +116,16 @@ void print(const char* str) {
 void render_prompt() {
     print("\nxaeronOS> ");
 }
+
+void print_hex(uint64_t value) {
+    char hex_chars[] = "0123456789ABCDEF";
+    char buf[19];  // "0x" + 16 digits + null
+    buf[0] = '0';
+    buf[1] = 'x';
+    for (int i = 0; i < 16; i++) {
+        buf[17 - i] = hex_chars[value & 0xF];
+        value >>= 4;
+    }
+    buf[18] = '\0';
+    print(buf);
+}

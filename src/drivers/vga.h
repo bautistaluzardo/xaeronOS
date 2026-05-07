@@ -9,6 +9,7 @@ void clear_screen();
 void putchar(char c);
 void print(const char* str);
 void render_prompt();
+void print_hex(uint64_t value);
  
 #endif
  
