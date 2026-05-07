@@ -4,10 +4,16 @@
 #define VGA_WIDTH 80
 #define VGA_HEIGHT 25
 
+volatile uint64_t timer_ticks = 0;
+volatile int sleeping = 0;
+volatile uint64_t sleep_target = 0;
+
 static uint16_t* vga = (uint16_t*)0xB8000;
 
 static int col = 0;
 static int row = 0;
+
+void prompt();
 
 /* ========================= */
 /* IOO                  */
@@ -141,6 +147,43 @@ void print(const char* str) {
         putchar(str[i]);
 }
 
+// prompt
+
+
+void render_prompt() {
+    print("\nxaeronOS> ");
+}
+
+//RELOJ
+
+void timer_init() {
+
+    uint16_t divisor = 1193180 / 100;
+
+    outb(0x43, 0x36);
+
+    outb(0x40, divisor & 0xFF);
+    outb(0x40, divisor >> 8);
+}
+
+void timer_handler() {
+
+    timer_ticks++;
+
+    if (sleeping && timer_ticks >= sleep_target) {
+
+        sleeping = 0;
+        print("Canto el gallo che\n");
+        render_prompt();
+    }
+}
+
+void sleep(uint64_t ticks) {
+
+    sleep_target = timer_ticks + ticks;
+    sleeping = 1;
+}
+
 /* ========================= */
 /* ilos                    */
 /* ========================= */
@@ -171,6 +214,29 @@ void prompt() {
     print("\nxaeronOS> ");
 }
 
+void print_number(uint64_t n) {
+
+    char buffer[32];
+
+    int i = 0;
+
+    if (n == 0) {
+        putchar('0');
+        return;
+    }
+
+    while (n > 0) {
+
+        buffer[i++] = '0' + (n % 10);
+
+        n /= 10;
+    }
+
+    while (i > 0)
+        putchar(buffer[--i]);
+}
+
+
 void execute_command() {
 
     command_buffer[command_index] = '\0';
@@ -181,11 +247,21 @@ void execute_command() {
         print("help   - muestra esta ayuda\n");
         print("clear  - limpia la pantalla\n");
         print("about  - info del kernel\n");
-        print("panic  - test exception\n");
+        print("uptime - tiempo desde el boot\n");
+        print("sleep - manda al sistema a dormir 3 segundos\n");
+        print("panic  - debug\n");
 
     } else if (strcmp(command_buffer, "clear")) {
 
         clear_screen();
+    
+    } else if (strcmp(command_buffer, "uptime")) {
+
+        print("\nVamos corriendo: ");
+
+        print_number(timer_ticks / 100);
+
+        print(" segundos\n");
 
     } else if (strcmp(command_buffer, "about")) {
 
@@ -197,7 +273,15 @@ void execute_command() {
     } else if (strcmp(command_buffer, "panic")) {
 
         __asm__ volatile ("int $0");
+    
+    } else if (strcmp(command_buffer, "sleep")) {
 
+        print("\nDurmiendo 10 segundos...\n");
+
+        sleep(1000);
+
+        return;
+    
     } else if (command_index == 0) {
 
         /* gato no hace nada */
@@ -208,9 +292,9 @@ void execute_command() {
     }
 
     command_index = 0;
-
-    prompt();
+    render_prompt();
 }
+
 
 /* ========================= */
 /* teclado                  */
@@ -247,6 +331,8 @@ char keyboard_map[128] = {
 void keyboard_handler() {
 
     uint8_t scancode = inb(0x60);
+    if (sleeping)
+        return;
 
     /* soltar tecla */
     if (scancode & 0x80)
@@ -301,7 +387,7 @@ void kernel_main() {
     clear_screen();
 
     idt_init();
-
+    timer_init();
     __asm__ volatile ("sti");
 
     print("booteaste el kernel.\n");

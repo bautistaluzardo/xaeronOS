@@ -4,6 +4,7 @@ extern void print(const char* str);
 extern void isr0();
 extern void idt_load(struct idtr*);
 extern void irq1();
+extern void irq0();
 static inline void outb(uint16_t port, uint8_t value) {
     __asm__ volatile ("outb %0, %1"
                       :
@@ -29,6 +30,7 @@ static void idt_set_gate(int n, void* handler) {
 
 void idt_init() {
     idt_set_gate(0, isr0);
+    idt_set_gate(32, irq0);
     idt_set_gate(33, irq1);
 
     idtr_desc.limit = sizeof(idt) - 1;
@@ -73,6 +75,6 @@ void pic_remap() {
     outb(0x21, 0x01);
     outb(0xA1, 0x01);
 
-    outb(0x21, 0xFD);
+    outb(0x21, 0xFC);
     outb(0xA1, 0xFF);
 }
