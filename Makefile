@@ -8,6 +8,14 @@ LDFLAGS = -nostdlib
 
 all: myos.iso
 
+obj/idt.o: src/idt.asm
+	mkdir -p obj
+	$(AS) -f elf64 src/idt.asm -o obj/idt.o
+
+obj/idt_c.o: src/idt.c
+	mkdir -p obj
+	$(CC) $(CFLAGS) -c src/idt.c -o obj/idt_c.o
+
 obj/boot.o: src/boot.asm
 	mkdir -p obj
 	$(AS) -f elf64 src/boot.asm -o obj/boot.o
@@ -16,9 +24,13 @@ obj/kernel.o: src/kernel.c
 	mkdir -p obj
 	$(CC) $(CFLAGS) -c src/kernel.c -o obj/kernel.o
 
-kernel.bin: obj/boot.o obj/kernel.o
-	$(LD) $(LDFLAGS) -T linker.ld -o kernel.bin obj/boot.o obj/kernel.o
-
+kernel.bin: obj/boot.o obj/kernel.o obj/idt.o obj/idt_c.o
+	$(LD) $(LDFLAGS) -T linker.ld -o kernel.bin \
+	obj/boot.o \
+	obj/kernel.o \
+	obj/idt.o \
+	obj/idt_c.o
+	
 myos.iso: kernel.bin
 	mkdir -p iso/boot/grub
 	cp kernel.bin iso/boot/kernel.bin

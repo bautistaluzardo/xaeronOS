@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include "idt.h"
 
 #define VGA_MEMORY (uint16_t*)0xB8000
 #define VGA_WIDTH 80
@@ -35,8 +36,14 @@ void print(const char* str) {
 
 void kernel_main() {
     clear_screen();
+    idt_init();
     print("booteaste el kernel.\n");
     print("bienvenido al os papa.\n");
 
+    volatile int x = 1;
+    volatile int y = 0;
+    volatile int z = x / y;
+
     for(;;) __asm__("hlt");
 }
+
