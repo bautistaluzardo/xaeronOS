@@ -5,6 +5,39 @@
 #include "../lib/string.h"
 #include "../mm/pmm.h"
 #include "../mm/vmm.h"
+#include "../mm/kmalloc.h"
+
+void cmd_xaeron() {
+    print("X   X  AA  EEEE RRRR   OOO  N   N \n");
+    print(" X X  A  A E    R   R O   O NN  N \n");
+    print("  X   AAAA EEE  RRRR  O   O N N N \n");
+    print(" X X  A  A E    R R   O   O N  NN \n");
+    print("X   X A  A EEEE R  RR  OOO  N   N \n");
+
+}
+void cmd_malloctest() {
+    uint64_t *a = kmalloc(sizeof(uint64_t));
+    uint64_t *b = kmalloc(sizeof(uint64_t));
+    uint64_t *c = kmalloc(128);
+
+    if (!a || !b || !c) {
+        print("\nmalloctest: fallo la alocacion\n");
+        return;
+    }
+
+    *a = 0x1234;
+    *b = 0x5678;
+
+    print("\na: "); print_hex((uint64_t)a); print(" = "); print_hex(*a);
+    print("\nb: "); print_hex((uint64_t)b); print(" = "); print_hex(*b);
+    print("\nc: "); print_hex((uint64_t)c);
+    print("\n");
+
+    if (*a == 0x1234 && *b == 0x5678)
+        print("malloctest: OK\n");
+    else
+        print("malloctest: FALLO\n");
+}
 
 void cmd_vmtest() {
     // alocamos un frame físico
@@ -56,6 +89,7 @@ void cmd_help() {
     print("sleep - manda al sistema a dormir 3 segundos\n");
     print("panic  - debug\n");
     print("meminfo - muestra la memoria fisica\n");
+    print("malloctest - test de kmalloc para el heap de memoria\n");
     print("vmtest - test de memoria virtual\n");
 }
  

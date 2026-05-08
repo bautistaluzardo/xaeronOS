@@ -18,6 +18,10 @@ void execute_command() {
  
         cmd_help();
  
+    } else if (strcmp(command_buffer, "xaeron")){
+
+        cmd_xaeron();
+
     } else if (strcmp(command_buffer, "clear")) {
     
  
@@ -33,6 +37,11 @@ void execute_command() {
         cmd_uptime();
     }
 
+     else if (strcmp(command_buffer, "malloctest")){
+
+        cmd_malloctest();
+    
+    }
      else if (strcmp(command_buffer, "vmtest")) {
     
         cmd_vmtest();

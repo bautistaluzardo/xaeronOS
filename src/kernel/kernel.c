@@ -4,6 +4,9 @@
 #include "../shell/shell.h"
 #include "../mm/pmm.h"
 #include "../mm/vmm.h"
+#include "../mm/kmalloc.h"
+
+
 
 void kernel_main(uint64_t mb2_info) {
     clear_screen();
@@ -11,6 +14,7 @@ void kernel_main(uint64_t mb2_info) {
     timer_init();
     pmm_init(mb2_info);
     vmm_init();
+    kmalloc_init();
 
     __asm__ volatile ("sti");
 

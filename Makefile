@@ -21,6 +21,7 @@ OBJ = \
 	obj/shell/shell.o \
 	obj/mm/pmm.o \
 	obj/mm/vmm.o \
+	obj/mm/kmalloc.o \
 	obj/kernel/kernel.o
 
 # ========================= #
@@ -42,12 +43,16 @@ obj/cpu/idt_asm.o: src/cpu/idt.asm
 	$(AS) -f elf64 src/cpu/idt.asm -o obj/cpu/idt_asm.o
 
 # ========================= #
-# vmm                       #
+# vmm   y kmalloc           #
 # ========================= #
 
 obj/mm/vmm.o: src/mm/vmm.c src/mm/vmm.h
 	mkdir -p obj/mm
 	$(CC) $(CFLAGS) -c src/mm/vmm.c -o obj/mm/vmm.o
+
+obj/mm/kmalloc.o: src/mm/kmalloc.c src/mm/kmalloc.h
+	mkdir -p obj/mm
+	$(CC) $(CFLAGS) -c src/mm/kmalloc.c -o obj/mm/kmalloc.o
 
 # ========================= #
 # pmm                       #
