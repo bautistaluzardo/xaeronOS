@@ -10,5 +10,9 @@ void cmd_meminfo(void);
 void cmd_vmtest(void);
 void cmd_malloctest(void);
 void cmd_xaeron(void);
+void cmd_reboot(void);
+void cmd_cpuinfo(void);
+void cmd_version(void);
+void cmd_echo(void);
 
 #endif

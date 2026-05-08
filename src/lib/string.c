@@ -37,3 +37,18 @@ void print_number(uint64_t n) {
     while (i > 0)
         putchar(buffer[--i]);
 }
+
+int strlen(const char* s) {
+    int i = 0;
+    while (s[i]) i++;
+    return i;
+}
+
+void strncpy(char* dst, const char* src, int n) {
+    int i = 0;
+    while (i < n && src[i]) {
+        dst[i] = src[i];
+        i++;
+    }
+    dst[i] = '\0';
+}

@@ -6,6 +6,9 @@
 
 char command_buffer[256];
 int  command_index = 0;
+int  argc = 0;
+char argv[MAX_ARGS][ARG_LEN];
+
 
 typedef struct {
     const char *name;
@@ -24,6 +27,10 @@ static command_t commands[] = {
     { "vmtest",     cmd_vmtest,     "testea el VMM"               },
     { "malloctest", cmd_malloctest, "testea kmalloc"              },
     { "xaeron",     cmd_xaeron,     "arte ASCII"                  },
+    { "reboot",     cmd_reboot,     "reinicia el sistema"         },
+    { "cpuinfo",    cmd_cpuinfo,    "muestra informacion del CPU" },
+    { "version",    cmd_version,    "version del kernel"          },
+    { "echo",       cmd_echo,       "imprime valores en pantalla" },
     { NULL, NULL, NULL }
 };
 
@@ -50,8 +57,10 @@ void execute_command(void) {
         return;
     }
 
+    parse_args();  // <-- nuevo
+
     for (int i = 0; commands[i].name != NULL; i++) {
-        if (strcmp(command_buffer, commands[i].name)) {
+        if (strcmp(argv[0], commands[i].name)) {  // <-- argv[0]
             commands[i].func();
             command_index = 0;
             render_prompt();
@@ -60,8 +69,28 @@ void execute_command(void) {
     }
 
     print("\ncomando no encontrado: ");
-    print(command_buffer);
+    print(argv[0]);  // <-- argv[0]
     print("\n");
     command_index = 0;
     render_prompt();
+}
+
+void parse_args(void) {
+    argc = 0;
+    int i = 0;
+    int len = strlen(command_buffer);
+
+    while (i < len && argc < MAX_ARGS) {
+        // saltear espacios
+        while (i < len && command_buffer[i] == ' ') i++;
+        if (i >= len) break;
+
+        // copiar palabra
+        int j = 0;
+        while (i < len && command_buffer[i] != ' ' && j < ARG_LEN - 1) {
+            argv[argc][j++] = command_buffer[i++];
+        }
+        argv[argc][j] = '\0';
+        argc++;
+    }
 }

@@ -6,6 +6,78 @@
 #include "../mm/pmm.h"
 #include "../mm/vmm.h"
 #include "../mm/kmalloc.h"
+#include "../lib/io.h"
+#include "shell.h"
+
+void cmd_echo() {
+    print("\n");
+    for (int i = 1; i < argc; i++) {  // desde 1, saltando el nombre del comando
+        print(argv[i]);
+        if (i < argc - 1) print(" ");
+    }
+    print("\n");
+}
+
+void cmd_version() {
+    print("\nxaeronOS v0.1.0\n");
+    print("Compilado: ");
+    print(__DATE__);
+    print(" ");
+    print(__TIME__);
+    print("\n");
+    print("Arch: x86_64\n");
+}
+
+void cmd_cpuinfo() {
+    uint32_t eax, ebx, ecx, edx;
+
+    // cpuid con eax=0 devuelve el vendor string en ebx, edx, ecx
+    __asm__ volatile (
+        "cpuid"
+        : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx)
+        : "a"(0)
+    );
+
+    // el vendor string son 12 bytes: ebx + edx + ecx
+    char vendor[13];
+    ((uint32_t*)vendor)[0] = ebx;
+    ((uint32_t*)vendor)[1] = edx;
+    ((uint32_t*)vendor)[2] = ecx;
+    vendor[12] = '\0';
+
+    // cpuid con eax=1 devuelve family/model/stepping en eax
+    __asm__ volatile (
+        "cpuid"
+        : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx)
+        : "a"(1)
+    );
+
+    uint32_t stepping = eax & 0xF;
+    uint32_t model    = (eax >> 4)  & 0xF;
+    uint32_t family   = (eax >> 8)  & 0xF;
+
+    print("\nCPU Vendor : "); print(vendor);
+    print("\nFamily     : "); print_number(family);
+    print("\nModel      : "); print_number(model);
+    print("\nStepping   : "); print_number(stepping);
+    print("\n");
+}
+
+void cmd_reboot() {
+    print("\nReiniciando...\n");
+    // vaciar el buffer del keyboard controller
+    uint8_t val;
+    do {
+        val = inb(0x64);
+        if (val & 1) inb(0x60);  // limpiar output buffer
+    } while (val & 2);           // esperar que el input buffer esté libre
+
+    // mandar el pulso de reset
+    outb(0x64, 0xFE);
+
+    // si no funcionó, triple fault como fallback
+    __asm__ volatile ("lidt 0; int $0");
+}
 
 void cmd_xaeron() {
     print("X   X  AA  EEEE RRRR   OOO  N   N \n");
