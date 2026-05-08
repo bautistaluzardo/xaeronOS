@@ -80,18 +80,6 @@ void cmd_meminfo() {
     print(" KB\n");
 }
 
-void cmd_help() {
-    print("\nComandos disponibles:\n");
-    print("help   - muestra esta ayuda\n");
-    print("clear  - limpia la pantalla\n");
-    print("about  - info del kernel\n");
-    print("uptime - tiempo desde el boot\n");
-    print("sleep - manda al sistema a dormir 3 segundos\n");
-    print("panic  - debug\n");
-    print("meminfo - muestra la memoria fisica\n");
-    print("malloctest - test de kmalloc para el heap de memoria\n");
-    print("vmtest - test de memoria virtual\n");
-}
  
 void cmd_clear() {
     clear_screen();
